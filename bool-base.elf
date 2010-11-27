@@ -1,0 +1,212 @@
+%%%%% bool.elf
+%%%%% Boolean literals
+%%%%% John Boyland
+
+
+%%%% Definitions
+
+
+
+bool : type.
+
+
+true : bool.
+
+false : bool.
+
+
+%freeze bool.
+
+
+
+eq? : bool -> bool -> bool -> type.
+
+%abbrev eq = [B1] [B2] eq? B1 B2 true.
+
+%abbrev ne = [B1] [B2] eq? B1 B2 false.
+
+
+eq/ : eq B B.
+
+
+ne/TF : ne true false.
+
+ne/FT : ne false true.
+
+
+%abbrev eq?/yes = eq/.
+
+%abbrev eq?/no = [NE:ne B1 B2] NE.
+
+
+not : bool -> bool -> type.
+
+not/T : not true false.
+
+not/F : not false true.
+
+
+and : bool -> bool -> bool -> type.
+
+
+and/FX : and false B false.
+
+and/XF : and B false false.
+
+and/TT : and true true true.
+
+
+or : bool -> bool -> bool -> type.
+
+or/TX: or true B true.
+
+or/XT: or B true true.
+
+or/FF: or false false false.
+
+
+
+
+
+%%%% Theorems
+
+
+
+%%% theorems about eq
+
+%{%
+#define EQ eq
+BEGIN_ELF
+#include "EQ.i"
+END_ELF
+%}%
+
+
+%%% theorems about ne
+
+%{%
+#define RELN ne
+#define REL(X,Y) X<>Y
+BEGIN_ELF
+#include "RELN.i"
+END_ELF
+#undef RELN
+#undef REL
+#undef EQ
+%}%
+
+
+%theorem ne-anti-reflexive :
+	forall* {B}
+	forall {R:ne B B}
+	exists {F:void}
+	true.
+
+%worlds () (ne-anti-reflexive _ _).
+%total { } (ne-anti-reflexive _ _).
+
+
+%theorem ne-symmetric :
+	forall* {B1} {B2}
+	forall {R1:ne B1 B2}
+	exists {R2:ne B2 B1}
+	true.
+
+- : ne-symmetric ne/TF ne/FT.
+
+- : ne-symmetric ne/FT ne/TF.
+
+%worlds () (ne-symmetric _ _).
+%total { } (ne-symmetric _ _).
+
+
+%theorem eq-ne-implies-false :
+	forall* {B1} {B2}
+	forall {D1:eq B1 B2} {D2:ne B1 B2}
+	exists {F:void}
+	true.
+
+%worlds () (eq-ne-implies-false _ _ _).
+%total { } (eq-ne-implies-false _ _ _).
+
+
+
+%%% theorems about eq?
+
+
+%theorem eq?-total* :
+	forall {B1} {B2}
+	exists {B} {EQ?:eq? B1 B2 B}
+	true.
+
+- : eq?-total* true true _ (eq?/yes).
+
+- : eq?-total* false false _ (eq?/yes).
+	
+- : eq?-total* true false _ (eq?/no ne/TF).
+
+- : eq?-total* false true _ (eq?/no ne/FT).
+
+%worlds () (eq?-total* _ _ _ _).
+%total { } (eq?-total* _ _ _ _).
+
+
+%abbrev eq?-total = eq?-total* _ _ _.
+
+
+
+%%% Theorems about not, and, or
+
+%{%
+These boolean connectives are not as useful
+as they might seem.  Currently I do not prove
+many things about them.
+%}%
+
+
+%theorem not-total*:
+	forall {B1}
+	exists {B2} {N:not B1 B2}
+	true.
+
+%abbrev not-total = not-total* _ _.
+
+- : not-total not/T.
+
+- : not-total not/F.
+
+%worlds () (not-total* _ _ _).
+
+
+%theorem and-total* :
+	forall {B1} {B2} 
+	exists {B3} {A:and B1 B2 B3}
+	true.
+
+%abbrev and-total = and-total* _ _ _.
+
+- : and-total and/FX.
+
+- : and-total and/XF.
+
+- : and-total and/TT.
+
+%worlds () (and-total* _ _ _ _).
+%total { } (and-total* _ _ _ _).
+
+
+%theorem or-total* :
+	forall {B1} {B2} 
+	exists {B3} {A:or B1 B2 B3}
+	true.
+
+%abbrev or-total = or-total* _ _ _.
+
+- : or-total or/TX.
+
+- : or-total or/XT.
+
+- : or-total or/FF.
+
+%worlds () (or-total* _ _ _ _).
+%total { } (or-total* _ _ _ _).
